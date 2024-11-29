@@ -5,4 +5,5 @@ resources:
   - namespace.yaml
   - secret.yaml
   # - pod-vllm.yaml
-# components: []
+  # - pod-vllm-tester.yaml
+  # - pod-vllm-tester-2.yaml

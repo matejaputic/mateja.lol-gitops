@@ -128,9 +128,6 @@ spec:
         - name: registry-ca
           mountPath: /etc/ssl/certs/registry-ca.pem
           subPath: ca.crt
-        # - name: buildkitd-config
-        #   mountPath: /etc/buildkit/buildkitd.toml
-        #   subPath: buildkitd.toml
         - name: docker-config
           mountPath: /root/.docker
           readOnly: true
@@ -140,9 +137,6 @@ spec:
     - name: registry-ca
       configMap:
         name: registry-ca
-    # - name: buildkitd-config
-    #   configMap:
-    #     name: buildkitd-toml
     - name: docker-config
       secret:
         secretName: docker-config

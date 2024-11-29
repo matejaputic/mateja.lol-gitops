@@ -6,4 +6,5 @@ resources:
   - ingress-nginx.yaml
   - openebs.yaml
   - harbor-goharbor.yaml
+  - amd-gpu.yaml
 # components: []

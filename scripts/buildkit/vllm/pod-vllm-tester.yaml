@@ -1,0 +1,44 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: vllm-tester
+  namespace: buildkit
+spec:
+  hostAliases:
+    - ip: 192.168.88.10
+      hostnames:
+        - registry.cluster.internal
+  containers:
+    - name: vllm-tester
+      image: rocm/pytorch:rocm6.2_ubuntu20.04_py3.9_pytorch_release_2.3.0
+      imagePullPolicy: IfNotPresent
+      env:
+        - name: DOCKER_CONFIG
+          value: /root/.docker
+      command:
+        - sh
+        - -c
+        - |
+          sleep infinity
+      securityContext:
+        privileged: true
+      volumeMounts:
+        # https://github.com/moby/buildkit/issues/879#issuecomment-1240347038
+        - name: workspace
+          mountPath: /workspace
+        - name: registry-ca
+          mountPath: /etc/ssl/certs/registry-ca.pem
+          subPath: ca.crt
+        - name: docker-config
+          mountPath: /root/.docker
+          readOnly: true
+  volumes:
+    - name: workspace
+      emptyDir: {}
+    - name: registry-ca
+      configMap:
+        name: registry-ca
+    - name: docker-config
+      secret:
+        secretName: docker-config
