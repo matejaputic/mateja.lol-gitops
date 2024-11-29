@@ -22,7 +22,6 @@ spec:
   sourceRef:
     kind: GitRepository
     name: metallb
-    namespace: infra
 ---
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
