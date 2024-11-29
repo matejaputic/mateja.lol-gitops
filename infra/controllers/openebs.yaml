@@ -1,0 +1,115 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openebs
+  labels:
+    toolkit.fluxcd.io/deployment: infra
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/warn: privileged
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: openebs
+  namespace: openebs
+spec:
+  interval: 12h
+  url: https://openebs.github.io/openebs
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: openebs
+  namespace: openebs
+spec:
+  interval: 5m
+  releaseName: openebs
+  targetNamespace: openebs
+  chart:
+    spec:
+      chart: openebs
+      sourceRef:
+        kind: HelmRepository
+        name: openebs
+        namespace: infra
+      interval: 5m
+  timeout: 5m
+  maxHistory: 3
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  uninstall:
+    keepHistory: false
+  values:
+    release:
+      version: 4.1.1
+    openebs-crds:
+      csi:
+        volumeSnapshots:
+          enabled: false
+          keep: true
+    localpv-provisioner:
+      rbac:
+        create: true
+      hostpathClass:
+        reclaimPolicy: Retain
+        isDefaultClass: true
+    # Refer to https://github.com/openebs/zfs-localpv/blob/HEAD/deploy/helm/charts/values.yaml for complete set of values.
+    zfs-localpv:
+      enabled: false
+      crds:
+        zfsLocalPv:
+          enabled: false
+        csi:
+          volumeSnapshots:
+            enabled: false
+    # Refer to https://github.com/openebs/lvm-localpv/blob/HEAD/deploy/helm/charts/values.yaml for complete set of values.
+    lvm-localpv:
+      enabled: false
+      crds:
+        lvmLocalPv:
+          enabled: false
+        csi:
+          volumeSnapshots:
+            enabled: false
+    mayastor:
+      enabled: false
+      csi:
+        node:
+          initContainers:
+            enabled: false
+      etcd:
+        # -- Kubernetes Cluster Domain
+        clusterDomain: cluster.local
+      # Refer to https://github.com/openebs/dynamic-localpv-provisioner/blob/HEAD/deploy/helm/charts/values.yaml for complete set of values.
+    localpv-provisioner:
+        enabled: false
+      crds:
+        enabled: false
+    # -- Configuration options for pre-upgrade helm hook job.
+    preUpgradeHook:
+      image:
+        # -- The container image registry URL for the hook job
+        registry: docker.io
+        # -- The container repository for the hook job
+        repo: bitnami/kubectl
+        # -- The container image tag for the hook job
+        tag: 1.25.15
+        # -- The imagePullPolicy for the container
+        pullPolicy: IfNotPresent
+    engines:
+      local:
+        lvm:
+          enabled: false
+        zfs:
+          enabled: false
+      replicated:
+        # Refer to https://github.com/openebs/mayastor-extensions/blob/v2.7.0/chart/values.yaml for complete set of values.
+    mayastor:
+          enabled: false
