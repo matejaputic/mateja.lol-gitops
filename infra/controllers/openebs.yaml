@@ -33,7 +33,6 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: openebs
-        namespace: infra
       interval: 5m
   timeout: 5m
   maxHistory: 3
