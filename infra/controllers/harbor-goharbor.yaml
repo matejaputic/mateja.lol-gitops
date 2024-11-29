@@ -41,65 +41,47 @@ spec:
     remediation:
       retries: 3
   values:
-    clusterDomain: cluster.internal
-    adminPassword: JKyikIY9EjR2vBTR22nI9S
     externalURL: https://registry.cluster.internal
+    harborAdminPassword: JKyikIY9EjR2vBTR22nI9S
     logLevel: debug
+    expose:
+      ingress:
+        hosts:
+          core: registry.cluster.internal
+      clusterIP:
+        staticClusterIP: 10.96.0.50
     trivy:
       enabled: false
-    service:
-      type: ClusterIP
-      clusterIP: 10.96.0.50
-    #   loadBalancerIP: 192.168.88.11
-    core:
-      nodeSelector:
-        kubernetes.io/hostname: rondo
-      image:
-        debug: true
-    jobservice:
-      nodeSelector:
-        kubernetes.io/hostname: rondo
-      image:
-        debug: true
-    registry:
-      nodeSelector:
-        kubernetes.io/hostname: rondo
-      server:
-        image:
-          debug: true
-      controller:
-        image:
-          debug: true
-    ingress:
-      core:
-        hostname: registry.cluster.internal
-        annotations:
-          kubernetes.io/ingress.class: nginx
-          cert-manager.io/cluster-issuer: selfsigned
-        tls: 
-          enabled: true
-    nginx:
-      nodeSelector:
-        kubernetes.io/hostname: rondo
-      image:
-        debug: true
-      tls:
-        commonName: registry.cluster.internal
-    portal:
-      nodeSelector:
-        kubernetes.io/hostname: rondo
-    exporter:
-      nodeSelector:
-        kubernetes.io/hostname: rondo
-    redis:
-      internal:
-        nodeSelector:
-          kubernetes.io/hostname: rondo
+    # #### BORDER ####
+    # clusterDomain: cluster.internal
+    # adminPassword: JKyikIY9EjR2vBTR22nI9S
+    # externalURL: https://registry.cluster.internal
+    # logLevel: debug
+    # trivy:
+    #   enabled: false
     # service:
     #   type: ClusterIP
-    # portal:
+    #   clusterIP: 10.96.0.50
+    # #   loadBalancerIP: 192.168.88.11
+    # core:
+    #   nodeSelector:
+    #     kubernetes.io/hostname: rondo
     #   image:
     #     debug: true
+    # jobservice:
+    #   nodeSelector:
+    #     kubernetes.io/hostname: rondo
+    #   image:
+    #     debug: true
+    # registry:
+    #   nodeSelector:
+    #     kubernetes.io/hostname: rondo
+    #   server:
+    #     image:
+    #       debug: true
+    #   controller:
+    #     image:
+    #       debug: true
     # ingress:
     #   core:
     #     hostname: registry.cluster.internal
@@ -108,3 +90,33 @@ spec:
     #       cert-manager.io/cluster-issuer: selfsigned
     #     tls: 
     #       enabled: true
+    # nginx:
+    #   nodeSelector:
+    #     kubernetes.io/hostname: rondo
+    #   image:
+    #     debug: true
+    #   tls:
+    #     commonName: registry.cluster.internal
+    # portal:
+    #   nodeSelector:
+    #     kubernetes.io/hostname: rondo
+    # exporter:
+    #   nodeSelector:
+    #     kubernetes.io/hostname: rondo
+    # redis:
+    #   internal:
+    #     nodeSelector:
+    #       kubernetes.io/hostname: rondo
+    # # service:
+    # #   type: ClusterIP
+    # # portal:
+    # #   image:
+    # #     debug: true
+    # # ingress:
+    # #   core:
+    # #     hostname: registry.cluster.internal
+    # #     annotations:
+    # #       kubernetes.io/ingress.class: nginx
+    # #       cert-manager.io/cluster-issuer: selfsigned
+    # #     tls: 
+    # #       enabled: true
