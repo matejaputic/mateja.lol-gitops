@@ -48,12 +48,13 @@ spec:
     keepHistory: false
   values:
     release:
-      version: 4.1.1
+      version: "4.1.1"
     openebs-crds:
       csi:
         volumeSnapshots:
           enabled: false
           keep: true
+    # Refer to https://github.com/openebs/dynamic-localpv-provisioner/blob/HEAD/deploy/helm/charts/values.yaml for complete set of values.
     localpv-provisioner:
       rbac:
         create: true
@@ -78,6 +79,7 @@ spec:
         csi:
           volumeSnapshots:
             enabled: false
+    # Refer to https://github.com/openebs/mayastor-extensions/blob/v2.7.0/chart/values.yaml for complete set of values.
     mayastor:
       enabled: false
       csi:
@@ -87,8 +89,7 @@ spec:
       etcd:
         # -- Kubernetes Cluster Domain
         clusterDomain: cluster.local
-      # Refer to https://github.com/openebs/dynamic-localpv-provisioner/blob/HEAD/deploy/helm/charts/values.yaml for complete set of values.
-    localpv-provisioner:
+      localpv-provisioner:
         enabled: false
       crds:
         enabled: false
@@ -100,7 +101,7 @@ spec:
         # -- The container repository for the hook job
         repo: bitnami/kubectl
         # -- The container image tag for the hook job
-        tag: 1.25.15
+        tag: "1.25.15"
         # -- The imagePullPolicy for the container
         pullPolicy: IfNotPresent
     engines:
@@ -110,6 +111,5 @@ spec:
         zfs:
           enabled: false
       replicated:
-        # Refer to https://github.com/openebs/mayastor-extensions/blob/v2.7.0/chart/values.yaml for complete set of values.
-    mayastor:
+        mayastor:
           enabled: false
