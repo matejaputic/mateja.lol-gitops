@@ -5,5 +5,5 @@ resources:
   - metallb-native.yaml
   - ingress-nginx.yaml
   - openebs.yaml
-  # - harbor-goharbor.yaml
+  - harbor-goharbor.yaml
 # components: []
