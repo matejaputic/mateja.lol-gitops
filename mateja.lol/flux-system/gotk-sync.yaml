@@ -25,11 +25,6 @@ spec:
     kind: GitRepository
     name: flux-system
 ---
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: infra
----
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
@@ -46,11 +41,6 @@ spec:
     provider: sops
     secretRef:
       name: sops-age
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: apps
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
