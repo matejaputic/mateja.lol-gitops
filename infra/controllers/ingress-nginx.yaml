@@ -37,7 +37,7 @@ spec:
     keepHistory: false
   values:
     # nameOverride: ingress-nginx
-    # fullnameOverride: ingress-nginx
+    fullnameOverride: nginx
     controller:
       dnsPolicy: ClusterFirstWithHostNet
       # hostAliases:
