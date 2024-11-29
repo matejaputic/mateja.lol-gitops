@@ -1,0 +1,82 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: registry-ca
+  namespace: buildkit
+data:
+  ca.crt: |
+    -----BEGIN CERTIFICATE-----
+    MIIDEzCCAfugAwIBAgIQMBsbq+HEGzKdhawSDRzvnjANBgkqhkiG9w0BAQsFADAU
+    MRIwEAYDVQQDEwloYXJib3ItY2EwHhcNMjQxMTI5MDc1MzMwWhcNMjUxMTI5MDc1
+    MzMwWjAUMRIwEAYDVQQDEwloYXJib3ItY2EwggEiMA0GCSqGSIb3DQEBAQUAA4IB
+    DwAwggEKAoIBAQDGlKJzp10vuarvdyM0fqlc4cmAhFYvrnUcFLdPSyTnzifvaNH7
+    bVyIAuhvAoG58qFiPPOucLYeJOQ/5UeZeoy+xMm2U4orGTNHBVElzzSm5Bej3GC2
+    /HhmF1jnHS2NRebjVoAdSA6f5AWTumUPkRl+DxRU0dmG1jgA5ziL/fvwwGydjhno
+    T+qiYAZSKo7Vwvy4eKmBNs3f8MMlyQwrV9l3IHQt5uC7fISLDwShRgSWA15FIxmF
+    G5Wh1riOV72+wY/XWvjKqOBIe8deU5yKzn3Wo2ooX+hkUn9vEZvl29lw/6hCVid8
+    cvNPsu+BA8Q56mevxOFDnhveZB/xCUgvps4lAgMBAAGjYTBfMA4GA1UdDwEB/wQE
+    AwICpDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwDwYDVR0TAQH/BAUw
+    AwEB/zAdBgNVHQ4EFgQUruLRFK9kYri0ueBsq38cKurNTBwwDQYJKoZIhvcNAQEL
+    BQADggEBAGAzeXiO/0xsmhJL3+7aOdRk9EsPAM2mLx5oyE5A2zLkzKECFhoA+v4c
+    bdlJdHmGHVdLVfDa+EV5YQbTC3S1L+Eg3v4ODUtx4E6pmID0ttM846+qE2Hawc0C
+    djEbuTR1kzbG3sdCgV/VzkdC0rDwkg8LYVVEQE+Wp15affWmv5hA8ZVwcHSsSkR0
+    HVOdeIFKGAHo0wB9pNEmo6CcaDzeeZxj1zeQvDFj0SclfTGu5KbrUB49QtKzxB+l
+    7k7qUpJzpd4jwIRC6sQSraNTbHLfH/VxKNj1czRRKVYyMjkXa/EDKYmgar3dOUNu
+    1oVuumUpdBxf/yF9tQMGu+kq4ybbglM=
+    -----END CERTIFICATE-----
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: buildkit
+  namespace: buildkit
+spec:
+  hostAliases:
+    - ip: 192.168.88.10
+      hostnames:
+        - registry.cluster.internal
+  containers:
+    - name: buildkit
+      image: moby/buildkit:master
+      env:
+        - name: DOCKER_CONFIG
+          value: /root/.docker
+      command:
+        - sh
+        - -c
+        - |
+          echo "Updating CA certs"
+          update-ca-certificates
+          echo "Cloning vllm"
+          git clone --depth 1 --branch v0.6.4 https://github.com/vllm-project/vllm.git /workspace
+          echo "Building podinfo"
+          buildctl-daemonless.sh build \
+            --frontend dockerfile.v0 \
+            --local context=/workspace \
+            --local dockerfile=/workspace \
+            --opt filename=Dockerfile \
+            --output type=image,name=registry.cluster.internal/library/vllm-rocm:v0.6.4,push=true \
+            --export-cache type=registry,ref=registry.cluster.internal/library/vllm-rocm:buildcache,image-manifest=true \
+            --import-cache type=registry,ref=registry.cluster.internal/library/vllm-rocm:buildcache
+      securityContext:
+        privileged: true
+      volumeMounts:
+        # https://github.com/moby/buildkit/issues/879#issuecomment-1240347038
+        - name: workspace
+          mountPath: /workspace
+        - name: registry-ca
+          mountPath: /etc/ssl/certs/registry-ca.pem
+          subPath: ca.crt
+        - name: docker-config
+          mountPath: /root/.docker
+          readOnly: true
+  volumes:
+    - name: workspace
+      emptyDir: {}
+    - name: registry-ca
+      configMap:
+        name: registry-ca
+    - name: docker-config
+      secret:
+        secretName: docker-config
