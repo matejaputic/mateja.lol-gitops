@@ -3,16 +3,16 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: ingress-nginx
-  namespace: flux-system
+  namespace: infra
 spec:
-  interval: 24h
+  interval: 12h
   url: https://kubernetes.github.io/ingress-nginx
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: ingress-nginx
-  namespace: flux-system
+  namespace: infra
 spec:
   interval: 5m
   targetNamespace: ingress-nginx
