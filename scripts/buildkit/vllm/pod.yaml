@@ -1,32 +1,148 @@
 ---
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: registry-ca
+  namespace: buildkit
+data:
+  ca.crt: |
+    -----BEGIN CERTIFICATE-----
+    MIIDEzCCAfugAwIBAgIQMBsbq+HEGzKdhawSDRzvnjANBgkqhkiG9w0BAQsFADAU
+    MRIwEAYDVQQDEwloYXJib3ItY2EwHhcNMjQxMTI5MDc1MzMwWhcNMjUxMTI5MDc1
+    MzMwWjAUMRIwEAYDVQQDEwloYXJib3ItY2EwggEiMA0GCSqGSIb3DQEBAQUAA4IB
+    DwAwggEKAoIBAQDGlKJzp10vuarvdyM0fqlc4cmAhFYvrnUcFLdPSyTnzifvaNH7
+    bVyIAuhvAoG58qFiPPOucLYeJOQ/5UeZeoy+xMm2U4orGTNHBVElzzSm5Bej3GC2
+    /HhmF1jnHS2NRebjVoAdSA6f5AWTumUPkRl+DxRU0dmG1jgA5ziL/fvwwGydjhno
+    T+qiYAZSKo7Vwvy4eKmBNs3f8MMlyQwrV9l3IHQt5uC7fISLDwShRgSWA15FIxmF
+    G5Wh1riOV72+wY/XWvjKqOBIe8deU5yKzn3Wo2ooX+hkUn9vEZvl29lw/6hCVid8
+    cvNPsu+BA8Q56mevxOFDnhveZB/xCUgvps4lAgMBAAGjYTBfMA4GA1UdDwEB/wQE
+    AwICpDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwDwYDVR0TAQH/BAUw
+    AwEB/zAdBgNVHQ4EFgQUruLRFK9kYri0ueBsq38cKurNTBwwDQYJKoZIhvcNAQEL
+    BQADggEBAGAzeXiO/0xsmhJL3+7aOdRk9EsPAM2mLx5oyE5A2zLkzKECFhoA+v4c
+    bdlJdHmGHVdLVfDa+EV5YQbTC3S1L+Eg3v4ODUtx4E6pmID0ttM846+qE2Hawc0C
+    djEbuTR1kzbG3sdCgV/VzkdC0rDwkg8LYVVEQE+Wp15affWmv5hA8ZVwcHSsSkR0
+    HVOdeIFKGAHo0wB9pNEmo6CcaDzeeZxj1zeQvDFj0SclfTGu5KbrUB49QtKzxB+l
+    7k7qUpJzpd4jwIRC6sQSraNTbHLfH/VxKNj1czRRKVYyMjkXa/EDKYmgar3dOUNu
+    1oVuumUpdBxf/yF9tQMGu+kq4ybbglM=
+    -----END CERTIFICATE-----
+# ---
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: buildkitd-toml
+#   namespace: buildkit
+# data:
+#   buildkitd.toml: |
+#     debug = true
+#     trace = true
+#     root = "/var/lib/buildkit"
+#     # insecure-entitlements = [ "network.host", "security.insecure" ]
+#     insecure-entitlements = [ "security.insecure" ]
+
+#     # registry configures a new Docker register used for cache import or output.
+#     [registry."cluster.internal"]
+#       # mirror configuration to handle path in case a mirror registry requires a /project path rather than just a host:port
+#       http = true
+#       insecure = true
+
+#     # registry configures a new Docker register used for cache import or output.
+#     [registry."registry.cluster.internal"]
+#       # mirror configuration to handle path in case a mirror registry requires a /project path rather than just a host:port
+#       http = true
+#       insecure = true
+
+#     # # registry configures a new Docker register used for cache import or output.
+#     # [registry."docker.io"]
+#     #   # mirror configuration to handle path in case a mirror registry requires a /project path rather than just a host:port
+#     #   mirrors = ["yourmirror.local:5000", "core.harbor.domain/proxy.docker.io"]
+#     #   http = true
+#     #   insecure = true
+#     #   ca=["/etc/config/myca.pem"]
+#     #   [[registry."docker.io".keypair]]
+#     #     key="/etc/config/key.pem"
+#     #     cert="/etc/config/cert.pem"
+
+#     # # optionally mirror configuration can be done by defining it as a registry.
+#     # [registry."yourmirror.local:5000"]
+#     #   http = true
+
+#     # # Frontend control
+#     # [frontend."dockerfile.v0"]
+#     #   enabled = true
+
+#     # [frontend."gateway.v0"]
+#     #   enabled = true
+
+#     #   # If allowedRepositories is empty, all gateway sources are allowed.
+#     #   # Otherwise, only the listed repositories are allowed as a gateway source.
+#     #   # 
+#     #   # NOTE: Only the repository name (without tag) is compared.
+#     #   #
+#     #   # Example:
+#     #   # allowedRepositories = [ "docker-registry.wikimedia.org/repos/releng/blubber/buildkit" ]
+#     #   allowedRepositories = []
+
+#     # [system]
+#     #   # how often buildkit scans for changes in the supported emulated platforms
+#     #   platformsCacheMaxAge = "1h"
+---
+apiVersion: v1
 kind: Pod
 metadata:
   name: buildkit
   namespace: buildkit
-#   annotations:
-#     container.apparmor.security.beta.kubernetes.io/buildkit: unconfined
-# see buildkit/docs/rootless.md for caveats of rootless mode
 spec:
+  hostAliases:
+    - ip: 192.168.88.10
+      hostnames:
+        - registry.cluster.internal
   containers:
     - name: buildkit
-      image: moby/buildkit:master-rootless
-      args:
-        - '--oci-worker-no-process-sandbox'
+      image: moby/buildkit:master
+      env:
+        - name: DOCKER_CONFIG
+          value: /root/.docker
+      command:
+        - sh
+        - -c
+        - |
+          echo "Updating CA certs"
+          update-ca-certificates
+          echo "Cloning podinfo"
+          git clone https://github.com/stefanprodan/podinfo.git /workspace
+          echo "Building podinfo"
+          buildctl-daemonless.sh build \
+            --frontend dockerfile.v0 \
+            --local context=/workspace \
+            --local dockerfile=/workspace \
+            --opt filename=Dockerfile \
+            --output type=image,name=registry.cluster.internal/library/podinfo:deleteme,push=true \
+            --export-cache type=registry,ref=registry.cluster.internal/library/podinfo:buildcache,image-manifest=true \
+            --import-cache type=registry,ref=registry.cluster.internal/library/podinfo:buildcache
       securityContext:
-        # Needs Kubernetes >= 1.19
-        seccompProfile:
-          type: Unconfined
-        # To change UID/GID, you need to rebuild the image
-        runAsUser: 1000
-        runAsGroup: 1000
+        privileged: true
       volumeMounts:
-        # Dockerfile has `VOLUME /home/user/.local/share/buildkit` by default too,
-        # but the default VOLUME does not work with rootless on Google's Container-Optimized OS
-        # as it is mounted with `nosuid,nodev`.
         # https://github.com/moby/buildkit/issues/879#issuecomment-1240347038
-        - name: buildkit
-          mountPath: /home/user/.local/share/buildkit
+        - name: workspace
+          mountPath: /workspace
+        - name: registry-ca
+          mountPath: /etc/ssl/certs/registry-ca.pem
+          subPath: ca.crt
+        # - name: buildkitd-config
+        #   mountPath: /etc/buildkit/buildkitd.toml
+        #   subPath: buildkitd.toml
+        - name: docker-config
+          mountPath: /root/.docker
+          readOnly: true
   volumes:
-    - name: buildkit
+    - name: workspace
       emptyDir: {}
+    - name: registry-ca
+      configMap:
+        name: registry-ca
+    # - name: buildkitd-config
+    #   configMap:
+    #     name: buildkitd-toml
+    - name: docker-config
+      secret:
+        secretName: docker-config
