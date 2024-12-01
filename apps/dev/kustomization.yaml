@@ -3,7 +3,11 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../base/podinfo
+  - ../base/dashboard
 patches:
   - path: podinfo-values.yaml
+    target:
+      kind: HelmRelease
+  - path: dashboard-values.yaml
     target:
       kind: HelmRelease
