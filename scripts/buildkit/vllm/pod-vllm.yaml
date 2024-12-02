@@ -179,33 +179,6 @@ data:
     CMD ["/bin/bash"]
 ---
 apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: registry-ca
-  namespace: buildkit
-data:
-  ca.crt: |
-    -----BEGIN CERTIFICATE-----
-    MIIDEzCCAfugAwIBAgIQMBsbq+HEGzKdhawSDRzvnjANBgkqhkiG9w0BAQsFADAU
-    MRIwEAYDVQQDEwloYXJib3ItY2EwHhcNMjQxMTI5MDc1MzMwWhcNMjUxMTI5MDc1
-    MzMwWjAUMRIwEAYDVQQDEwloYXJib3ItY2EwggEiMA0GCSqGSIb3DQEBAQUAA4IB
-    DwAwggEKAoIBAQDGlKJzp10vuarvdyM0fqlc4cmAhFYvrnUcFLdPSyTnzifvaNH7
-    bVyIAuhvAoG58qFiPPOucLYeJOQ/5UeZeoy+xMm2U4orGTNHBVElzzSm5Bej3GC2
-    /HhmF1jnHS2NRebjVoAdSA6f5AWTumUPkRl+DxRU0dmG1jgA5ziL/fvwwGydjhno
-    T+qiYAZSKo7Vwvy4eKmBNs3f8MMlyQwrV9l3IHQt5uC7fISLDwShRgSWA15FIxmF
-    G5Wh1riOV72+wY/XWvjKqOBIe8deU5yKzn3Wo2ooX+hkUn9vEZvl29lw/6hCVid8
-    cvNPsu+BA8Q56mevxOFDnhveZB/xCUgvps4lAgMBAAGjYTBfMA4GA1UdDwEB/wQE
-    AwICpDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwDwYDVR0TAQH/BAUw
-    AwEB/zAdBgNVHQ4EFgQUruLRFK9kYri0ueBsq38cKurNTBwwDQYJKoZIhvcNAQEL
-    BQADggEBAGAzeXiO/0xsmhJL3+7aOdRk9EsPAM2mLx5oyE5A2zLkzKECFhoA+v4c
-    bdlJdHmGHVdLVfDa+EV5YQbTC3S1L+Eg3v4ODUtx4E6pmID0ttM846+qE2Hawc0C
-    djEbuTR1kzbG3sdCgV/VzkdC0rDwkg8LYVVEQE+Wp15affWmv5hA8ZVwcHSsSkR0
-    HVOdeIFKGAHo0wB9pNEmo6CcaDzeeZxj1zeQvDFj0SclfTGu5KbrUB49QtKzxB+l
-    7k7qUpJzpd4jwIRC6sQSraNTbHLfH/VxKNj1czRRKVYyMjkXa/EDKYmgar3dOUNu
-    1oVuumUpdBxf/yF9tQMGu+kq4ybbglM=
-    -----END CERTIFICATE-----
----
-apiVersion: v1
 kind: Pod
 metadata:
   name: buildkit

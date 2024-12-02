@@ -1,0 +1,117 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dockerfile
+  namespace: buildkit
+data:
+  Dockerfile: |
+    ARG USERNAME
+    ARG AUTHORIZED_KEY
+
+    ENV USERNAME=$USERNAME
+    ENV AUTHORIZED_KEY=$AUTHORIZED_KEY
+
+    FROM rocm/dev-ubuntu-22.04:6.2.4
+
+    RUN <<EOF
+    apt-get update 
+    apt-get upgrade -y
+    apt-get install -y --no-install-recommends \
+      git vim hipblas hipblaslt hipsparse hipcub \
+      sudo openssh-server
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+    EOF
+
+    RUN <<EOF
+    adduser --system --group "$USERNAME"
+    # usermod -aG sudo "$USERNAME"
+    # echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/"$USERNAME"
+    # chmod 0440 /etc/sudoers.d/"$USERNAME"
+    sed -i 's/^#Port 22/Port 2222/' /etc/ssh/sshd_config
+    sed -i 's/^#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config
+    sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+    sed -i 's/^#PermitEmptyPasswords yes/PermitEmptyPasswords no/' /etc/ssh/sshd_config
+    echo "AllowUsers $USERNAME" >> /etc/ssh/sshd_config
+    echo "$AUTHORIZED_KEY" > /mnt/home/$USERNAME/.ssh/authorized_keys
+    chown $USERNAME:$USERNAME /mnt/home/$USERNAME/.ssh/authorized_keys
+    chmod 600 /mnt/home/$USERNAME/.ssh/authorized_keys
+    EOF
+
+    WORKDIR /workspace
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: buildkit-kobold-rocm
+  namespace: buildkit
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - orla
+      hostAliases:
+        - ip: 192.168.88.10
+          hostnames:
+            - registry.cluster.internal
+      containers:
+        - name: buildkit
+          image: moby/buildkit:master
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DOCKER_CONFIG
+              value: /root/.docker
+          securityContext:
+            privileged: true  # Run in privileged mode
+          command:
+            - buildctl-daemonless.sh
+          args:
+            - --debug
+            - build
+            - --frontend
+            - dockerfile.v0
+            - --local
+            - context=/workspace
+            - --local
+            - dockerfile=/workspace
+            - --opt
+            - filename=Dockerfile
+            - --output
+            - type=image,name=registry.cluster.internal/library/rocm/dev-ubuntu-22.04:6.2.4-kobold,push=true
+            - --export-cache 
+            - type=registry,ref=registry.cluster.internal/library/rocm/dev-ubuntu-22.04:buildcache,image-manifest=true
+            - --import-cache 
+            - type=registry,ref=registry.cluster.internal/library/rocm/dev-ubuntu-22.04:buildcache
+          volumeMounts:
+            - name: workspace
+              mountPath: /workspace
+            - name: dockerfile
+              mountPath: /workspace/Dockerfile
+              subPath: Dockerfile
+            - name: registry-ca
+              mountPath: /etc/ssl/certs/registry-ca.pem
+              subPath: ca.crt
+            - name: docker-config
+              mountPath: /root/.docker
+              readOnly: true
+      volumes:
+        - name: workspace
+          emptyDir: {}
+        - name: registry-ca
+          configMap:
+            name: registry-ca
+        - name: dockerfile
+          configMap:
+            name: dockerfile
+        - name: docker-config
+          secret:
+            secretName: docker-config

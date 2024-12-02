@@ -1,0 +1,77 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devcontainer
+  namespace: devcontainers
+  labels:
+    app: devcontainer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: devcontainer
+  template:
+    metadata:
+      labels:
+        app: devcontainer
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - orla
+      containers:
+        - name: devcontainer
+          image: mcr.microsoft.com/devcontainers/python:dev-3.12
+          imagePullPolicy: IfNotPresent
+          workingDir: /workspace
+          command: ["sleep"]
+          args: ["infinity"]
+          resources:
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: workspace
+              mountPath: /workspace
+            # - name: dockerfile
+            #   mountPath: /workspace/Dockerfile
+            #   subPath: Dockerfile
+            # - name: registry-ca
+            #   mountPath: /etc/ssl/certs/registry-ca.pem
+            #   subPath: ca.crt
+            # - name: docker-config
+            #   mountPath: /root/.docker
+            #   readOnly: true
+      volumes:
+        - name: workspace
+          emptyDir: {}
+        # - name: registry-ca
+        #   configMap:
+        #     name: registry-ca
+        # - name: dockerfile
+        #   configMap:
+        #     name: dockerfile
+        # - name: docker-config
+        #   secret:
+        #     secretName: docker-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: devcontainer
+  namespace: devcontainers
+  labels:
+    app: devcontainer
+spec:
+  selector:
+    app: devcontainer
+  ports:
+    - port: 3000
+      protocol: TCP
+      targetPort: 3000
+  type: ClusterIP

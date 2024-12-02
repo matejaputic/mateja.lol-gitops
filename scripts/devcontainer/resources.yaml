@@ -1,0 +1,117 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rocm-devcontainer
+  namespace: amd-gpu
+  labels:
+    app: rocm-devcontainer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rocm-devcontainer
+  template:
+    metadata:
+      labels:
+        app: rocm-devcontainer
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - orla
+      containers:
+        - name: devcontainer
+          image: registry.cluster.internal/library/rocm/dev-ubuntu-22.04:6.2.4-kobold
+          imagePullPolicy: IfNotPresent
+          workingDir: /workspace
+          env:
+            - name: HIP_VISIBLE_DEVICES
+              value: '0'
+            - name: HSA_OVERRIDE_GFX_VERSION
+              value: 11.0.0
+          command:
+            - sh
+            - '-c'
+            - |
+              echo "Running kobold"
+              sh ./run.sh Llama-3.1-8B-Instruct-Q4_K_M.gguf
+          resources:
+            requests:
+              cpu: 8000m
+              memory: 64Gi
+            limits:
+              cpu: 15950m
+              memory: 79Gi
+              amd.com/gpu: 1
+          ports:
+            - name: http
+              containerPort: 5001
+          volumeMounts:
+            - name: workspace
+              mountPath: /workspace
+            # - name: dockerfile
+            #   mountPath: /workspace/Dockerfile
+            #   subPath: Dockerfile
+            # - name: registry-ca
+            #   mountPath: /etc/ssl/certs/registry-ca.pem
+            #   subPath: ca.crt
+            # - name: docker-config
+            #   mountPath: /root/.docker
+            #   readOnly: true
+      volumes:
+        - name: workspace
+          persistentVolumeClaim:
+            claimName: amd-gpu-storage
+        # - name: registry-ca
+        #   configMap:
+        #     name: registry-ca
+        # - name: dockerfile
+        #   configMap:
+        #     name: dockerfile
+        # - name: docker-config
+        #   secret:
+        #     secretName: docker-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rocm-devcontainer
+  namespace: amd-gpu
+  labels:
+    app: rocm-devcontainer
+spec:
+  selector:
+    app: rocm-devcontainer
+  ports:
+    - name: http
+      port: 5001
+      protocol: TCP
+      targetPort: 5001
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kobold
+  namespace: amd-gpu
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: kobold.cluster.internal
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kobold
+                port:
+                  number: 5001

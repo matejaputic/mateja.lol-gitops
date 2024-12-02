@@ -1,0 +1,140 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dockerfile
+  namespace: buildkit
+data:
+  Dockerfile: |
+    # cuda devel image for base, best build compatibility
+    FROM nvidia/cuda:12.1.1-devel-ubuntu22.04 as builder
+
+    # Update base image and install dependencies
+    RUN apt-get update && apt-get upgrade -y \
+        && apt-get install -y git build-essential \
+        python3 pip gcc wget \
+        ocl-icd-opencl-dev opencl-headers clinfo \
+        libclblast-dev libopenblas-dev \
+        && mkdir -p /etc/OpenCL/vendors && echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
+
+    ARG clone_arg
+
+    # Pulling latest koboldcpp branch and installing requirements
+    RUN git clone --depth 1 https://github.com/LostRuins/koboldcpp.git $clone_arg
+
+    WORKDIR /koboldcpp
+
+    RUN pip3 install -r requirements.txt
+
+    # Setting up env variables
+    ENV LLAMA_PORTABLE=1
+    ENV LLAMA_CUBLAS=1
+    ENV LLAMA_CLBLAST=1
+    ENV LLAMA_OPENBLAS=1
+
+    # build-o'clock
+    RUN make
+
+    # Using ubuntu 22.04 for smaller final image
+    FROM ubuntu:22.04
+
+    # update image and install necessary packages
+    RUN apt-get update && apt-get upgrade -y \
+        && apt-get -y install python3 \
+        ocl-icd-opencl-dev opencl-headers clinfo \
+        libclblast-dev libopenblas-dev \
+        && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+    COPY --from=builder /usr/local/cuda-12.1 /usr/local/cuda-12.1
+    COPY --from=builder /usr/local/cuda-12.1/bin /usr/local/cuda-12.1/bin
+    COPY --from=builder /usr/local/cuda-12.1/lib64 /usr/local/cuda-12.1/lib64
+
+    # Copy the git repo from builder
+    COPY --from=builder /koboldcpp /koboldcpp
+
+    WORKDIR /koboldcpp
+
+    EXPOSE 80
+
+    ENV CUDA_HOME='/usr/local/cuda-12.1'
+    ENV PATH=/usr/local/cuda-12.1/bin${PATH:+:${PATH}}
+    ENV LD_LIBRARY_PATH=/usr/local/cuda-12.1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+
+    # koboldcpp.py as entry command
+    CMD ["python3", "koboldcpp.py"]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: koboldcpp-builder
+  namespace: buildkit
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - orla
+  hostAliases:
+    - ip: 192.168.88.10
+      hostnames:
+        - registry.cluster.internal
+  containers:
+    - name: buildkit
+      image: moby/buildkit:master
+      imagePullPolicy: IfNotPresent
+      env:
+        - name: DOCKER_CONFIG
+          value: /root/.docker
+        - name: RELEASE_TAG
+          value: v1.78.yr0-ROCm
+      command:
+        - sh
+        - -c
+        - |
+          echo "Updating CA certs"
+          update-ca-certificates
+          # echo "Cloning repo"
+          # git clone --depth 1 --branch ${RELEASE_TAG} https://github.com/YellowRoseCx/koboldcpp-rocm.git /app
+          echo "Building app"
+          buildctl-daemonless.sh build \
+            --frontend dockerfile.v0 \
+            --local context=/app \
+            --local dockerfile=/app \
+            --opt filename=Dockerfile \
+            --opt build-arg:clone_arg=main \
+            --output type=image,name=registry.cluster.internal/library/koboldcpp-rocm:${RELEASE_TAG},push=true \
+            --export-cache type=registry,ref=registry.cluster.internal/library/koboldcpp-rocm:buildcache,image-manifest=true \
+            --import-cache type=registry,ref=registry.cluster.internal/library/koboldcpp-rocm:buildcache
+          echo "Sleeping forever"
+          sleep infinity
+      securityContext:
+        privileged: true
+      volumeMounts:
+        # https://github.com/moby/buildkit/issues/879#issuecomment-1240347038
+        - name: app
+          mountPath: /app
+        - name: dockerfile
+          mountPath: /app/Dockerfile
+          subPath: Dockerfile
+        - name: registry-ca
+          mountPath: /etc/ssl/certs/registry-ca.pem
+          subPath: ca.crt
+        - name: docker-config
+          mountPath: /root/.docker
+          readOnly: true
+  volumes:
+    - name: app
+      emptyDir: {}
+    - name: registry-ca
+      configMap:
+        name: registry-ca
+    - name: dockerfile
+      configMap:
+        name: dockerfile
+    - name: docker-config
+      secret:
+        secretName: docker-config

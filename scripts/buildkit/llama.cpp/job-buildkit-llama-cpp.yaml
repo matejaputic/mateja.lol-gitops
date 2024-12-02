@@ -1,0 +1,144 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dockerfile
+  namespace: buildkit
+data:
+  Dockerfile: |
+    # syntax=docker/dockerfile:1
+
+    ARG UBUNTU_VERSION=22.04
+
+    # This needs to generally match the container host's environment.
+    ARG ROCM_VERSION=6.2.4
+
+    # Target the CUDA build image
+    ARG BASE_ROCM_DEV_CONTAINER=rocm/dev-ubuntu-${UBUNTU_VERSION}:${ROCM_VERSION}
+
+    FROM ${BASE_ROCM_DEV_CONTAINER} AS build
+
+    # Build for 780M only
+    ARG ROCM_DOCKER_ARCH="gfx1103"
+
+    WORKDIR /workspace
+
+    RUN <<EOF
+    apt-get update
+    apt-get install -y \
+      libcurl4-openssl-dev curl git \
+      hipblas hipblaslt hipsparse hipcub
+    rm -rf /var/lib/apt/lists/*
+    EOF
+
+    RUN git clone --depth 1 https://github.com/ggerganov/llama.cpp.git /workspace
+
+    RUN <<EOF
+    pip install --upgrade pip setuptools wheel
+    pip install -r requirements.txt
+    EOF
+
+    # Set nvcc architecture
+    ENV AMDGPU_TARGETS=${ROCM_DOCKER_ARCH}
+
+    # Enable ROCm
+    ENV GGML_HIPBLAS=1
+    ENV CC=/opt/rocm/llvm/bin/clang
+    ENV CXX=/opt/rocm/llvm/bin/clang++
+
+    # Must be set to 0.0.0.0 so it can listen to requests from host machine
+    ENV LLAMA_ARG_HOST=0.0.0.0
+
+    # Enable cURL
+    ENV LLAMA_CURL=1
+
+    RUN make -j$(nproc) llama-server
+
+    HEALTHCHECK CMD [ "curl", "-f", "http://localhost:8080/health" ]
+
+    ENTRYPOINT [ "/workspace/llama-server" ]
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: buildkit-devcontainer
+  namespace: buildkit
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - orla
+      hostAliases:
+        - ip: 192.168.88.10
+          hostnames:
+            - registry.cluster.internal
+      containers:
+        - name: buildkit
+          image: moby/buildkit:master
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: UBUNTU_VERSION
+              value: '22.04'
+            - name: ROCM_VERSION
+              value: '6.2.4'
+            - name: DOCKER_CONFIG
+              value: /root/.docker
+          securityContext:
+            privileged: true
+          command:
+            - buildctl-daemonless.sh
+          args:
+            - '--debug'
+            - build
+            - '--frontend'
+            - dockerfile.v0
+            - '--local'
+            - context=/workspace
+            - '--local'
+            - dockerfile=/workspace
+            - '--opt'
+            - filename=Dockerfile
+            - '--opt'
+            - build-arg:UBUNTU_VERSION=$(UBUNTU_VERSION)
+            - '--opt'
+            - build-arg:ROCM_VERSION=$(ROCM_VERSION)
+            - '--output'
+            - type=image,name=registry.cluster.internal/library/ggerganov/llama-cpp-780m,push=true
+            - '--export-cache'
+            - type=registry,ref=registry.cluster.internal/library/ggerganov/llama-cpp-780m:buildcache,image-manifest=true
+            - '--import-cache'
+            - type=registry,ref=registry.cluster.internal/library/ggerganov/llama-cpp-780m:buildcache
+            - --progress
+            - plain
+          volumeMounts:
+            - name: workspace
+              mountPath: /workspace
+            - name: dockerfile
+              mountPath: /workspace/Dockerfile
+              subPath: Dockerfile
+            - name: registry-ca
+              mountPath: /etc/ssl/certs/registry-ca.pem
+              subPath: ca.crt
+            - name: docker-config
+              mountPath: /root/.docker
+              readOnly: true
+      volumes:
+        - name: workspace
+          emptyDir: {}
+        - name: registry-ca
+          configMap:
+            name: registry-ca
+        - name: dockerfile
+          configMap:
+            name: dockerfile
+        - name: docker-config
+          secret:
+            secretName: docker-config

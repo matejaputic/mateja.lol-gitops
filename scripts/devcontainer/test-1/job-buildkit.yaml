@@ -1,0 +1,105 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dockerfile
+  namespace: buildkit
+data:
+  Dockerfile: |
+    FROM mcr.microsoft.com/vscode/devcontainers/base:0-focal
+
+    ENV LC_ALL=C.UTF-8
+    ENV LANG=C.UTF-8
+    RUN unset DISPLAY
+    ENV DEBIAN_FRONTEND=noninteractive
+
+    RUN <<EOF
+    apt -y update 
+    apt -y install \
+        python3.8-venv \
+        python3.9-full \
+        python3.9-dev \
+        build-essential \
+        iputils-ping \
+        libpq-dev \
+        postgresql-client
+    EOF
+
+    USER vscode
+
+    RUN curl -sSL https://raw.githubusercontent.com/python-poetry/install.python-poetry.org/refs/heads/main/install-poetry.py | python3 -
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: buildkit-devcontainer
+  namespace: buildkit
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - orla
+      hostAliases:
+        - ip: 192.168.88.10
+          hostnames:
+            - registry.cluster.internal
+      containers:
+        - name: buildkit
+          image: moby/buildkit:master
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DOCKER_CONFIG
+              value: /root/.docker
+          securityContext:
+            privileged: true  # Run in privileged mode
+          command:
+            - buildctl-daemonless.sh
+          args:
+            - --debug
+            - build
+            - --frontend
+            - dockerfile.v0
+            - --local
+            - context=/workspace
+            - --local
+            - dockerfile=/workspace
+            - --opt
+            - filename=Dockerfile
+            - --output
+            - type=image,name=registry.cluster.internal/library/vscode/ssh-devcontainer,push=true
+            - --export-cache 
+            - type=registry,ref=registry.cluster.internal/library/vscode/ssh-devcontainer:buildcache,image-manifest=true
+            - --import-cache 
+            - type=registry,ref=registry.cluster.internal/library/vscode/ssh-devcontainer:buildcache
+          volumeMounts:
+            - name: workspace
+              mountPath: /workspace
+            - name: dockerfile
+              mountPath: /workspace/Dockerfile
+              subPath: Dockerfile
+            - name: registry-ca
+              mountPath: /etc/ssl/certs/registry-ca.pem
+              subPath: ca.crt
+            - name: docker-config
+              mountPath: /root/.docker
+              readOnly: true
+      volumes:
+        - name: workspace
+          emptyDir: {}
+        - name: registry-ca
+          configMap:
+            name: registry-ca
+        - name: dockerfile
+          configMap:
+            name: dockerfile
+        - name: docker-config
+          secret:
+            secretName: docker-config

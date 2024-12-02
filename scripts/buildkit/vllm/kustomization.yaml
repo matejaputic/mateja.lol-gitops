@@ -3,7 +3,8 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - namespace.yaml
+  # - pod-gpu-runner.yaml
   - secret.yaml
   # - pod-vllm.yaml
-  # - pod-vllm-tester.yaml
+  # - pod-vllm-builder-tester.yaml
   # - pod-vllm-tester-2.yaml

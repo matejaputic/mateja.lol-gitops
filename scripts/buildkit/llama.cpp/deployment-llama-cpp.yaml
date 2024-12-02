@@ -1,0 +1,95 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llama-cpp
+  namespace: amd-gpu
+  labels:
+    app: llama-cpp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llama-cpp
+  template:
+    metadata:
+      labels:
+        app: llama-cpp
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - orla
+      containers:
+        - name: llama-cpp-tester
+          image: registry.cluster.internal/library/ggerganov/llama-cpp-780m:latest
+          imagePullPolicy: IfNotPresent
+          workingDir: /workspace
+          env:
+            - name: HIP_VISIBLE_DEVICES
+              value: '0'
+            - name: HSA_OVERRIDE_GFX_VERSION
+              value: 11.0.0
+          command: ["sleep"]
+          args: ["infinity"]
+          resources:
+            requests:
+              cpu: 8000m
+              memory: 64Gi
+            limits:
+              cpu: 15950m
+              memory: 79Gi
+              amd.com/gpu: 1
+          ports:
+            - name: http
+              containerPort: 8080
+          volumeMounts:
+            - name: models
+              mountPath: /models
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: amd-gpu-storage
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llama-cpp
+  namespace: amd-gpu
+  labels:
+    app: llama-cpp
+spec:
+  selector:
+    app: llama-cpp
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: llama-cpp
+  namespace: amd-gpu
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: llama-cpp.cluster.internal
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: llama-cpp
+                port:
+                  number: 8080
