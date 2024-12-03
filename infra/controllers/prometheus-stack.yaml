@@ -22,7 +22,7 @@ metadata:
   namespace: prometheus-stack
 spec:
   interval: 10m
-  targetNamespace: infra
+  targetNamespace: prometheus-stack
   releaseName: prometheus-stack
   chart:
     spec:
