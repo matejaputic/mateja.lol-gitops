@@ -7,4 +7,5 @@ resources:
   - openebs.yaml
   - harbor-goharbor.yaml
   - amd-gpu.yaml
+  - metrics-server.yaml
 # components: []
