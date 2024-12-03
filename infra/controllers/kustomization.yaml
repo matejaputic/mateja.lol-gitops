@@ -8,4 +8,5 @@ resources:
   - harbor-goharbor.yaml
   - amd-gpu.yaml
   - metrics-server.yaml
+  - prometheus-stack.yaml
 # components: []
