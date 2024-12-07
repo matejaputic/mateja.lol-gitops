@@ -5,17 +5,6 @@ metadata:
   name: temporal
   namespace: temporal
 spec:
-  releaseName: temporal
-  interval: 5m
-  chart:
-    spec:
-      chart: temporal
-      sourceRef:
-        kind: HelmRepository
-        name: temporal
-  install:
-    remediation:
-      retries: 3
   values:
     server:
       replicaCount: 1

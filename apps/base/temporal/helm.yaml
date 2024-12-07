@@ -1,21 +1,5 @@
 ---
 apiVersion: source.toolkit.fluxcd.io/v1
-kind: GitRepository
-metadata:
-  name: temporal
-  namespace: temporal
-spec:
-  ignore: |
-    # exclude all
-    /*
-    # include charts directory
-    !/charts/
-  interval: 1m
-  ref:
-    branch: main
-  url: https://github.com/temporalio/helm-charts
----
-apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: temporal
