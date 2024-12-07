@@ -27,7 +27,7 @@ spec:
     spec:
       chart: temporal
       sourceRef:
-        kind: HelmRepository
+        kind: GitRepository
         name: temporal
   install:
     createNamespace: true
