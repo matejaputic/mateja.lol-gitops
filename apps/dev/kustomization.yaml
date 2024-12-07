@@ -5,7 +5,7 @@ resources:
   - ../base/podinfo
   - ../base/dashboard
   # - ../base/temporal
-  - ../base/rsshub
+  # - ../base/rsshub
   - dashboard-extras.yaml
 patches:
   - path: podinfo-values.yaml
@@ -16,10 +16,10 @@ patches:
     target:
       kind: HelmRelease
       namespace: dashboard
-  - path: rsshub-values.yaml
-    target:
-      kind: HelmRelease
-      namespace: rsshub
+  # - path: rsshub-values.yaml
+  #   target:
+  #     kind: HelmRelease
+  #     namespace: rsshub
   # - path: temporal-values.yaml
   #   target:
   #     kind: HelmRelease
