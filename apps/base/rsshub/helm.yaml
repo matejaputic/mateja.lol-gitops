@@ -1,0 +1,28 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: rsshub
+  namespace: rsshub
+spec:
+  interval: 12h
+  url: https://naturalselectionlabs.github.io/helm-charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: rsshub
+  namespace: rsshub
+spec:
+  releaseName: rsshub
+  timeout: 15m
+  interval: 5m
+  chart:
+    spec:
+      chart: rsshub
+      sourceRef:
+        kind: HelmRepository
+        name: rsshub
+  install:
+    remediation:
+      retries: 3
