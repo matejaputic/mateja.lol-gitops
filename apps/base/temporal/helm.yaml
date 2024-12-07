@@ -15,6 +15,7 @@ metadata:
   namespace: temporal
 spec:
   releaseName: temporal
+  timeout: 15m
   interval: 5m
   chart:
     spec:
