@@ -10,9 +10,12 @@ patches:
   - path: podinfo-values.yaml
     target:
       kind: HelmRelease
+      namespace: podinfo
   - path: dashboard-values.yaml
     target:
       kind: HelmRelease
+      namespace: dashboard
   - path: temporal-values.yaml
     target:
       kind: HelmRelease
+      namespace: temporal
