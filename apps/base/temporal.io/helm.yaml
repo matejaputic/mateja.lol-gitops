@@ -9,7 +9,7 @@ spec:
     # exclude all
     /*
     # include charts directory
-    !/charts/
+    !/charts/temporal
   interval: 1m
   ref:
     branch: main
