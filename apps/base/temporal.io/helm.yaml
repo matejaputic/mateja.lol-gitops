@@ -9,11 +9,20 @@ spec:
     # exclude all
     /*
     # include charts directory
-    !/charts/temporal
+    !/charts/
   interval: 1m
   ref:
     branch: main
   url: https://github.com/temporalio/helm-charts
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: temporal
+  namespace: temporal
+spec:
+  interval: 12h
+  url: https://go.temporal.io/helm-charts 
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -25,9 +34,9 @@ spec:
   interval: 5m
   chart:
     spec:
-      chart: temporal
+      chart: temporal/temporal
       sourceRef:
-        kind: GitRepository
+        kind: HelmRepository
         name: temporal
   install:
     createNamespace: true
