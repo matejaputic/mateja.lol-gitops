@@ -4,12 +4,15 @@ kind: Kustomization
 resources:
   - ../base/podinfo
   - ../base/dashboard
-  - ../base/temporal.io
+  - ../base/temporal
   - dashboard-extras.yaml
 patches:
   - path: podinfo-values.yaml
     target:
       kind: HelmRelease
   - path: dashboard-values.yaml
+    target:
+      kind: HelmRelease
+  - path: temporal-values.yaml
     target:
       kind: HelmRelease

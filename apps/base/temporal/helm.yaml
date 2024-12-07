@@ -34,23 +34,10 @@ spec:
   interval: 5m
   chart:
     spec:
-      chart: temporal/temporal
+      chart: temporal
       sourceRef:
         kind: HelmRepository
         name: temporal
   install:
-    createNamespace: true
     remediation:
       retries: 3
-  values:
-    server:
-      replicaCount: 1
-    cassandra:
-      config:
-        cluster_size: 1
-    elasticsearch:
-      replicas: 1
-    prometheus:
-      enabled: false
-    grafana:
-      enabled: false
