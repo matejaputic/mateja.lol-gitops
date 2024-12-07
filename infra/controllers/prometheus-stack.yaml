@@ -33,6 +33,10 @@ spec:
   values:
     nameOverride: prometheus-stack
     grafana:
+      ingress:
+        enabled: true
+        hosts:
+          - grafana.cluster.internal
       persistence:
         enabled: true
         type: sts

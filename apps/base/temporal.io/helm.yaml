@@ -1,0 +1,40 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: temporal
+  namespace: temporal
+spec:
+  interval: 12h
+  url: https://go.temporal.io/helm-charts 
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: temporal
+  namespace: temporal
+spec:
+  releaseName: temporal
+  interval: 5m
+  chart:
+    spec:
+      chart: temporal
+      sourceRef:
+        kind: HelmRepository
+        name: temporal
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  values:
+    server:
+      replicaCount: 1
+    cassandra:
+      config:
+        cluster_size: 1
+    elasticsearch:
+      replicas: 1
+    prometheus:
+      enabled: false
+    grafana:
+      enabled: false
