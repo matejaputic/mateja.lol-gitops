@@ -4,7 +4,7 @@ kind: Kustomization
 resources:
   - metallb-native.yaml
   - ingress-nginx.yaml
-  # - openebs.yaml
+  - openebs.yaml
   - harbor-goharbor.yaml
   - amd-gpu.yaml
   - metrics-server.yaml
