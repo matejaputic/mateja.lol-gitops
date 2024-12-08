@@ -163,12 +163,12 @@ spec:
     #     tag: "1.25.15"
     #     # -- The imagePullPolicy for the container
     #     pullPolicy: IfNotPresent
-    # engines:
-    #   local:
-    #     lvm:
-    #       enabled: false
-    #     zfs:
-    #       enabled: false
+    engines:
+      local:
+        lvm:
+          enabled: false
+        zfs:
+          enabled: false
     #   replicated:
     #     mayastor:
     #       enabled: false
