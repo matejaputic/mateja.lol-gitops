@@ -96,11 +96,9 @@ spec:
           enabled: false
         zfs:
           enabled: false
-      replicated:
-        mayastor:
-          enabled: true
-    # localprovisioner:
-    #   nameOverride: "localpv-provisioner"
+    #   replicated:
+    #     mayastor:
+    #       enabled: false
     mayastor:
       storageClasses:
         - name: mayastor-expandable
