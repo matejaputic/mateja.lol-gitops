@@ -57,56 +57,48 @@ spec:
   values:
     # release:
     #   version: "4.1.1"
-    openebs-crds:
-      csi:
-        volumeSnapshots:
-          enabled: false
-          keep: true
-    # Refer to https://github.com/openebs/dynamic-localpv-provisioner/blob/HEAD/deploy/helm/charts/values.yaml for complete set of values.
-    localpv-provisioner:
-      rbac:
-        create: true
-      hostpathClass:
-        reclaimPolicy: Retain
-        isDefaultClass: true
-    # Refer to https://github.com/openebs/zfs-localpv/blob/HEAD/deploy/helm/charts/values.yaml for complete set of values.
-    zfs-localpv:
-      enabled: false
-      crds:
-        zfsLocalPv:
-          enabled: false
-        csi:
-          volumeSnapshots:
-            enabled: false
-    # Refer to https://github.com/openebs/lvm-localpv/blob/HEAD/deploy/helm/charts/values.yaml for complete set of values.
-    lvm-localpv:
-      enabled: false
-      crds:
-        lvmLocalPv:
-          enabled: false
-        csi:
-          volumeSnapshots:
-            enabled: false
-    # -- Configuration options for pre-upgrade helm hook job.
-    preUpgradeHook:
-      image:
-        # -- The container image registry URL for the hook job
-        registry: docker.io
-        # -- The container repository for the hook job
-        repo: bitnami/kubectl
-        # -- The container image tag for the hook job
-        tag: "1.25.15"
-        # -- The imagePullPolicy for the container
-        pullPolicy: IfNotPresent
+    # openebs-crds:
+    #   csi:
+    #     volumeSnapshots:
+    #       enabled: false
+    #       keep: true
+    # localpv-provisioner:
+    #   rbac:
+    #     create: true
+    #   hostpathClass:
+    #     reclaimPolicy: Retain
+    #     isDefaultClass: true
+    # zfs-localpv:
+    #   enabled: false
+    #   crds:
+    #     zfsLocalPv:
+    #       enabled: false
+    #     csi:
+    #       volumeSnapshots:
+    #         enabled: false
+    # lvm-localpv:
+    #   enabled: false
+    #   crds:
+    #     lvmLocalPv:
+    #       enabled: false
+    #     csi:
+    #       volumeSnapshots:
+    #         enabled: false
+    # preUpgradeHook:
+    #   image:
+    #     registry: docker.io
+    #     repo: bitnami/kubectl
+    #     tag: "1.25.15"
+    #     pullPolicy: IfNotPresent
     engines:
       local:
         lvm:
           enabled: false
         zfs:
           enabled: false
-      # replicated:
-      #   mayastor:
-      #     enabled: false
+    #   replicated:
+    #     mayastor:
+    #       enabled: false
     mayastor:
       storageClasses:
         - name: mayastor-expandable
@@ -246,6 +238,8 @@ spec:
           # -- Prevent modifying the volume mode when creating a PVC from an existing VolumeSnapshot
           preventVolumeModeConversion: true
         node:
+          initContainers:
+            enabled: false
           logLevel: info
           topology:
             segments:
