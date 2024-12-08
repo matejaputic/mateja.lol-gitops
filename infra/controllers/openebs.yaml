@@ -46,69 +46,129 @@ spec:
   uninstall:
     keepHistory: false
   values:
-    release:
-      version: "4.1.1"
-    openebs-crds:
-      csi:
-        volumeSnapshots:
-          enabled: false
-          keep: true
-    # Refer to https://github.com/openebs/dynamic-localpv-provisioner/blob/HEAD/deploy/helm/charts/values.yaml for complete set of values.
-    localpv-provisioner:
-      rbac:
-        create: true
-      hostpathClass:
-        reclaimPolicy: Retain
-        isDefaultClass: true
-    # Refer to https://github.com/openebs/zfs-localpv/blob/HEAD/deploy/helm/charts/values.yaml for complete set of values.
-    zfs-localpv:
-      enabled: false
-      crds:
-        zfsLocalPv:
-          enabled: false
-        csi:
-          volumeSnapshots:
-            enabled: false
-    # Refer to https://github.com/openebs/lvm-localpv/blob/HEAD/deploy/helm/charts/values.yaml for complete set of values.
-    lvm-localpv:
-      enabled: false
-      crds:
-        lvmLocalPv:
-          enabled: false
-        csi:
-          volumeSnapshots:
-            enabled: false
-    # Refer to https://github.com/openebs/mayastor-extensions/blob/v2.7.0/chart/values.yaml for complete set of values.
+    rbac:
+      create: true
+      pspEnabled: false
+
+    serviceAccount:
+      create: true
+      name: ""
+
     mayastor:
-      enabled: false
+      enabled: true  # Enable Mayastor
+
       csi:
+        controller:
+          logLevel: info
+          enableLeaderElection: true
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
         node:
-          initContainers:
-            enabled: false
-      etcd:
-        # -- Kubernetes Cluster Domain
-        clusterDomain: cluster.local
-      localpv-provisioner:
-        enabled: false
-      crds:
-        enabled: false
-    # -- Configuration options for pre-upgrade helm hook job.
-    preUpgradeHook:
+          logLevel: info
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+          topology:
+            segments:
+              openebs.io/csi-node: mayastor
+
       image:
-        # -- The container image registry URL for the hook job
-        registry: docker.io
-        # -- The container repository for the hook job
-        repo: bitnami/kubectl
-        # -- The container image tag for the hook job
-        tag: "1.25.15"
-        # -- The imagePullPolicy for the container
-        pullPolicy: IfNotPresent
-    engines:
-      local:
-        lvm:
-          enabled: false
-        zfs:
-          enabled: false
-      replicated:
-        mayastor:
-          enabled: false
+        provisionerTag: v3.5.0
+        attacherTag: v4.3.0
+        snapshotterTag: v6.3.1
+        registrarTag: v2.9.0
+
+      storageClasses:
+        - name: mayastor-expandable
+          allowVolumeExpansion: true
+          parameters:
+            protocol: nvmf
+            repl: "1"
+          provisioner: io.openebs.csi-mayastor
+          isDefault: false  # Set to true if this is the default class
+
+    localprovisioner:
+      basePath: "/var/openebs/local"
+
+    snapshotOperator:
+      enabled: true
+      controller:
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+
+    featureGates:
+      enabled: true
+      GPTBasedUUID:
+        enabled: true
+        featureGateFlag: "GPTBasedUUID"
+
+    metrics:
+      enabled: true
+
+    logging:
+      level: info
+
+    # openebs-crds:
+    #   csi:
+    #     volumeSnapshots:
+    #       enabled: false
+    #       keep: true
+    # # Refer to https://github.com/openebs/dynamic-localpv-provisioner/blob/HEAD/deploy/helm/charts/values.yaml for complete set of values.
+    # localpv-provisioner:
+    #   rbac:
+    #     create: true
+    #   hostpathClass:
+    #     reclaimPolicy: Retain
+    #     isDefaultClass: true
+    # Refer to https://github.com/openebs/zfs-localpv/blob/HEAD/deploy/helm/charts/values.yaml for complete set of values.
+    # zfs-localpv:
+    #   enabled: false
+    #   crds:
+    #     zfsLocalPv:
+    #       enabled: false
+    #     csi:
+    #       volumeSnapshots:
+    #         enabled: false
+    # # Refer to https://github.com/openebs/lvm-localpv/blob/HEAD/deploy/helm/charts/values.yaml for complete set of values.
+    # lvm-localpv:
+    #   enabled: false
+    #   crds:
+    #     lvmLocalPv:
+    #       enabled: false
+    #     csi:
+    #       volumeSnapshots:
+    #         enabled: false
+    # # -- Configuration options for pre-upgrade helm hook job.
+    # preUpgradeHook:
+    #   image:
+    #     # -- The container image registry URL for the hook job
+    #     registry: docker.io
+    #     # -- The container repository for the hook job
+    #     repo: bitnami/kubectl
+    #     # -- The container image tag for the hook job
+    #     tag: "1.25.15"
+    #     # -- The imagePullPolicy for the container
+    #     pullPolicy: IfNotPresent
+    # engines:
+    #   local:
+    #     lvm:
+    #       enabled: false
+    #     zfs:
+    #       enabled: false
+    #   replicated:
+    #     mayastor:
+    #       enabled: false
