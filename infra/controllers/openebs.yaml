@@ -99,6 +99,14 @@ spec:
         mayastor:
           enabled: false
     mayastor:
+      storageClasses:
+        - name: mayastor-expandable
+          allowVolumeExpansion: true
+          parameters:
+            protocol: nvmf
+            repl: "1"
+          provisioner: io.openebs.csi-mayastor
+          isDefault: false  # Set to true if this is the default class
       # -- Enable Mayastor storage engine
       # Note: Enabling this will remove LocalPV Provisioner and NDM (default chart components).
       enabled: true
