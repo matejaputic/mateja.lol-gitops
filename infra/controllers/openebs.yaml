@@ -135,8 +135,8 @@ spec:
     #     reclaimPolicy: Retain
     #     isDefaultClass: true
     # Refer to https://github.com/openebs/zfs-localpv/blob/HEAD/deploy/helm/charts/values.yaml for complete set of values.
-    # zfs-localpv:
-    #   enabled: false
+    zfs-localpv:
+      enabled: false
     #   crds:
     #     zfsLocalPv:
     #       enabled: false
@@ -144,8 +144,8 @@ spec:
     #       volumeSnapshots:
     #         enabled: false
     # # Refer to https://github.com/openebs/lvm-localpv/blob/HEAD/deploy/helm/charts/values.yaml for complete set of values.
-    # lvm-localpv:
-    #   enabled: false
+    lvm-localpv:
+      enabled: false
     #   crds:
     #     lvmLocalPv:
     #       enabled: false
