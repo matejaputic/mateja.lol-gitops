@@ -96,9 +96,6 @@ spec:
           provisioner: io.openebs.csi-mayastor
           isDefault: false  # Set to true if this is the default class
 
-    localprovisioner:
-      basePath: "/var/openebs/local"
-
     snapshotOperator:
       enabled: true
       controller:
@@ -134,6 +131,8 @@ spec:
       hostpathClass:
         reclaimPolicy: Retain
         isDefaultClass: true
+      basePath: "/var/openebs/local"
+
     # Refer to https://github.com/openebs/zfs-localpv/blob/HEAD/deploy/helm/charts/values.yaml for complete set of values.
     zfs-localpv:
       enabled: false
