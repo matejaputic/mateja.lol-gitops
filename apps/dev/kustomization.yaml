@@ -2,17 +2,18 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ../base/podinfo
-  # - ../base/dashboard
   - hoarder
+  # - ../base/podinfo
+  # - ../base/dashboard
   # - ../base/temporal
   # - ../base/rsshub
   # - dashboard-extras.yaml
 patches:
-  - path: podinfo-values.yaml
-    target:
-      kind: HelmRelease
-      namespace: podinfo
+  []
+  # - path: podinfo-values.yaml
+  #   target:
+  #     kind: HelmRelease
+  #     namespace: podinfo
   # - path: dashboard-values.yaml
   #   target:
   #     kind: HelmRelease
