@@ -58,6 +58,14 @@ spec:
     provider: sops
     secretRef:
       name: sops-age
+  postBuild:
+    substituteFrom:
+      - name: global-config
+        kind: ConfigMap
+        optional: false
+      # - name: global-config
+      #   kind: Secret
+      #   optional: true
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -92,3 +100,12 @@ spec:
 #     provider: sops
 #     secretRef:
 #       name: sops-age
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: global-config
+  namespace: flux-system
+data:
+  STORAGE_READWRITEONCE: "openebs-hostpath"
+  STORAGE_READWRITEMANY: ""
