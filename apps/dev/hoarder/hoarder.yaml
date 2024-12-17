@@ -35,6 +35,7 @@ spec:
     - targetPath: controllers.hoarder.containers.hoarder.env.NEXTAUTH_URL
       kind: Secret
       name: global-config
+      namespace: flux-system
       valuesKey: SECRET_INTERNAL_DOMAIN
     - targetPath: controllers.hoarder.containers.meilisearch.env.MEILI_MASTER_KEY
       kind: Secret
