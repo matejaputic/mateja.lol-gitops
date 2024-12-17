@@ -1,8 +1,9 @@
+---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - global-config-configmap.yaml
   - global-config-secret.yaml
+  - global-config-configmap.yaml
+  - repos.yaml
   - gotk-components.yaml
   - gotk-sync.yaml
-  - repos.yaml
