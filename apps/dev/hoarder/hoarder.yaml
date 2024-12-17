@@ -32,6 +32,10 @@ spec:
       kind: Secret
       name: hoarder-secrets
       valuesKey: MEILI_MASTER_KEY
+    - targetPath: controllers.hoarder.containers.hoarder.env.NEXTAUTH_URL
+      kind: Secret
+      name: global-config
+      valuesKey: SECRET_INTERNAL_DOMAIN
     - targetPath: controllers.hoarder.containers.meilisearch.env.MEILI_MASTER_KEY
       kind: Secret
       name: hoarder-secrets
@@ -61,7 +65,7 @@ spec:
               INFERENCE_IMAGE_MODEL: llava
               INFERENCE_TEXT_MODEL: llama3.2:3b
               MEILI_ADDR: http://hoarder-meilisearch:7700
-              NEXTAUTH_URL: hoarder.${SECRET_INTERNAL_DOMAIN}
+              # NEXTAUTH_URL: hoarder.${SECRET_INTERNAL_DOMAIN}
               OLLAMA_BASE_URL: http://ollama.ollama.svc.cluster.local:11434
               INFERENCE_JOB_TIMEOUT_SEC: 299
             securityContext:
