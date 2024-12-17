@@ -61,7 +61,7 @@ spec:
               INFERENCE_IMAGE_MODEL: llava
               INFERENCE_TEXT_MODEL: llama3.2:3b
               MEILI_ADDR: http://hoarder-meilisearch:7700
-              NEXTAUTH_URL: hoarder.${SECRET_DEFAULT_DOMAIN}
+              NEXTAUTH_URL: hoarder.${SECRET_INTERNAL_DOMAIN}
               OLLAMA_BASE_URL: http://ollama.ollama.svc.cluster.local:11434
               INFERENCE_JOB_TIMEOUT_SEC: 299
             securityContext:
@@ -150,7 +150,7 @@ spec:
         enabled: true
         annotations: {}
         hosts:
-          - host: hoarder.${SECRET_DEFAULT_DOMAIN}
+          - host: hoarder.${SECRET_INTERNAL_DOMAIN}
             paths:
               - path: /
                 service:
@@ -158,7 +158,7 @@ spec:
                   port: http
         tls:
           - hosts:
-              - hoarder.${SECRET_DEFAULT_DOMAIN}
+              - hoarder.${SECRET_INTERNAL_DOMAIN}
     persistence:
       config:
         existingClaim: hoarder
