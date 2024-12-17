@@ -63,9 +63,9 @@ spec:
       - name: global-config
         kind: ConfigMap
         optional: false
-      # - name: global-config
-      #   kind: Secret
-      #   optional: true
+      - name: global-config
+        kind: Secret
+        optional: true
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
