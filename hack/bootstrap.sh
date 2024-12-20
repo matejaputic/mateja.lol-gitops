@@ -44,7 +44,7 @@ sops --decrypt kubernetes/flux-system/sops-agekey.enc.yaml |kubectl apply -f -
 
 # HELM INSTALL FLUX SYNC
 helm upgrade \
-    flux2-sync \
+    flux-system \
     fluxcd-community/flux2-sync \
     --install \
     --version 1.10.0 \
