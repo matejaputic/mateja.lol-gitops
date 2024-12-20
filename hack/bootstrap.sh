@@ -3,6 +3,9 @@
 # Thanks to [davralin/cluster-ops](https://github.com/davralin/cluster-ops)
 # Thanks to [xunholy/k8s-ops](https://github.com/xunholy/k8s-gitops)
 
+# IMPORTANT: Make sure cluster nodes have been patched with patches/no-cni.yaml
+
+# HELM INSTALL CILIUM WITHOUT KUBE-PROXY
 helm upgrade \
     cilium \
     cilium/cilium \
