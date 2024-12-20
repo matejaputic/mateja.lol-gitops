@@ -1,0 +1,116 @@
+version: v1alpha1
+debug: false
+persist: true
+machine:
+  type: worker
+  token: ENC[AES256_GCM,data:vQDF2VOVzYD4XSf88xxLOO3hfOezb24=,iv:oUrymyhCkeUzAFKm234FLDVJq2xfrsae6Fpxf/3CK28=,tag:hpmjpXLAyrzZ7mwrPExhng==,type:str]
+  ca:
+    crt: ENC[AES256_GCM,data:qSWDprXPlCEU+rv+AiTHYT1iV70xGXAjWW/q0Z3S2VHQiGL4GmUnEBMQWsO50JKrgh36Qqlb9fsAtqvzNzSKb8lWfkugM551UqxmtrADFgz13m6mlf5BWT8KIMR8snJNOgCeXvzgQUoWbwMDPEyDFptD29X8mgFjIr03YUDOW68F4JfuDucutmjOxnwXvBx3mLvbhcqQXvLlz2n0CmseFT5/blnH4tJIcDYbE0Rl3uxnugZw1zGCv86Ejcpb4uhNeSQg7O8Q/pU8M0WtJmWbZx/o71XdMiFwDmVGfCEqZJLWo4bGrpKTKeIwdmk8wNJxo9v0UAAlSXJRJSjDHTiDriGLrHVCk0BkSvGE58VhNcYc0A9cLhu3s0vzunsJ11g8rPk2XSt8dT5pAQvgjhgMfTbUup07Qig2vr6IQYTkN9TcvGa0hKAq+kUC6z2QW0O2E5+MUcgAd+2nJRonkFbWYbOCgOhU08011HC3JLQ4pm8g19c2v4xNYhXwRqIQ2+tdAAkqKOz+Wahngp2+u6lB8Vk0xcqutn21IuKDLRN8c9bOmBivE50pqYBvRHR4wntvNXnxNAX0FjgItd3tXszYUtQIJzvSnqMrbyk2F/B7AkV85BtE6vdL6plldX/htatsdk77c1YKG57l1CtO1tIo6ivj4RaMJroREM1srAoAALoMm7mAo9fNLWGZZqtvas8thaWqdInneSb9vxJ22xLHqzXVb99zIBu18NK0nhgbQiJT0rmoWuW/Z8tHLISqGqaqZ4GTKcBeC6XXKSTf0Zm+8hdKcxLWbqnoQ/4+vrQAJS2pOcp3+K9hRk8ecBwZAT+0Cn81neYm76k4oGz1pmHZvhTIRWBtLGbtoiChVuMsGjI5mAPo,iv:bCpCVku2BlPQqAUVDt6GN0AAbuGr6fHFzOha1Ydt0EQ=,tag:lniwwbASyH7lZopUzYGCKA==,type:str]
+    key: ""
+  certSANs: []
+  kubelet:
+    image: ghcr.io/siderolabs/kubelet:v1.31.2
+    extraArgs:
+      rotate-server-certificates: "true"
+    extraMounts:
+      - destination: /var/openebs/local
+        type: bind
+        source: /var/openebs/local
+        options:
+          - rbind
+          - rshared
+          - rw
+    defaultRuntimeSeccompProfileEnabled: true
+    disableManifestsDirectory: true
+  network:
+    hostname: orla
+    extraHostEntries:
+      - ip: 192.168.88.10
+        aliases:
+          - registry.cluster.internal
+  install:
+    disk: /dev/nvme0n1
+    image: factory.talos.dev/installer-secureboot/8cd15f1076fb5f680807ec56e3236e9fa100792df2e8de30bdd9a12f36b984b0:v1.8.3
+    wipe: false
+  sysctls:
+    vm.nr_hugepages: "1024"
+  registries:
+    config:
+      registry.cluster.internal:
+        tls:
+          ca: ENC[AES256_GCM,data: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,iv:OD/dKWKnJS1x5j7SMm3x9qjhmub7vN3sDJL0fz2P9Cc=,tag:7Gc025NUojEJ04609Rt4bw==,type:str]
+  systemDiskEncryption:
+    state:
+      provider: luks2
+      keys:
+        - slot: 0
+          tpm: {}
+      options:
+        - no_read_workqueue
+        - no_write_workqueue
+    ephemeral:
+      provider: luks2
+      keys:
+        - slot: 0
+          tpm: {}
+      options:
+        - no_read_workqueue
+        - no_write_workqueue
+  features:
+    rbac: true
+    stableHostname: false
+    apidCheckExtKeyUsage: true
+    diskQuotaSupport: true
+    kubePrism:
+      enabled: true
+      port: 7445
+    hostDNS:
+      enabled: true
+      forwardKubeDNSToHost: true
+  nodeLabels:
+    openebs.io/engine: mayastor
+cluster:
+  id: ENC[AES256_GCM,data:MLBpVDp7mo5zi0AJksFREbmtTI9GlW4iOsvHKN7t0LFkxG9rovdQZInodgM=,iv:OTh3C7RDmBcB6ZW02w9Rbb7I3L23qjkDgmWdmMd/asU=,tag:fjZThGGCHn/tV4OVnx/e4w==,type:str]
+  secret: ENC[AES256_GCM,data:5i8aiBSh1EK1QSp7R2fjh33b5YEd61PxY1efegaH1zdp9eTqo/ax28x72zw=,iv:h9pcUWB8yPUTBjQdjJL4C3od1BSFkK5zK+hJcj92RO4=,tag:WMbIon8yYu2vaodk5IWdjA==,type:str]
+  controlPlane:
+    endpoint: https://192.168.88.100:6443
+  clusterName: mateja.lol
+  network:
+    cni:
+      name: none
+    dnsDomain: cluster.internal
+    podSubnets:
+      - 10.244.0.0/16
+    serviceSubnets:
+      - 10.96.0.0/12
+  token: ENC[AES256_GCM,data:VtrGXFMHeBqSNgghAkh821CWNQwtVIM=,iv:YpwUHw8d/c2hSzPmSWIu1XrzlPa9bPPe36rL1o4LcjM=,tag:HJvU+IVoc6EAcsBvlQIehw==,type:str]
+  ca:
+    crt: ENC[AES256_GCM,data:8ax0BS76/VIbpnP6SfwYW49XJ4K2yfK8ZWjJP8cwJaH8fN9NMGHbadtIj0nLIaHFOE5xg7iyrEzYu8+4KoE7CFtUXIZ6/GCWJ2LLWTym7CkgXVjsLawdYsAdTI0qPONNaKbXiVWkTsdfZtVoCOD9IYqacq2gyIy5vZMeZs/0RR2dE6dClaDSbrdSzXlNEwyJQGO9epFvvkNJdCwWUQ34NS55DQ5dEyC3rOIyCWdE8iyr9UmsZVtvSpFOyhOmFRY7l/2ZdbhKVKnyy252zOS7PEno/mMFA8ue0Q3sOLNN470ECZqJhA/HVNd0Uz64cz4w+O7C8n6P2ho5WcZ16/jZChiaN2HQJ6lo5dfAX6c2zVjB2ZSYVCYP9XFtbM7xtyYI46memElgyXmmzwO/GgZaQR063Pr38Sgoe2TD2pmBMxrIE+DzAUi4fEJTo8uTSkuq7taNoOciXJVX57AV/sbUqY2ClcemfZZjE4Z18LKp9lEjouIKriKNbhWLgP2LYGARjZa2ll/2I76dQA2cMgmqproWhHDEct3sbAvnuSpIW7A7n3dcroOeD3BbA+sTM0ksHFsUFJvnXWycaC4EAq1AyfMsBNEmILq+czgXRW9HQ0TyQpgLa7mlJ4c+W5KAxUPHOi2TqHeSeSG7QnB9ZvND69itaWGUTUxxmcP962L+vkeLYH0W9NXOVVOLmKmW3QFhMJk3A2GAwSYLl0g/vi/vSdM6Nfj3Y1V42DWrJfqX8oYsra9Zr2ZM+j0qL3JoLfvD6YAzUzCPNYcZr+pB5KHN7RReMfPorTLJ+xo1BQioDYX4hN8SqkEvzBWhhQDnOWisnxHn1JnEps6DKd8oGMkzmAdeJ+sK0GdKgn00y6wiDlw2MawS63CA5M/qvSDJi8DrEq/rv14TZR5guFnzRLHqZvIkG8m/MneKeAxLCJlEVjDcuCUo8ttIffeSIZsZc1FGogG7wdMOQU/Ngom0RVOsiVTgEL7eJLVrgp3cBRUEJZYlOa4McmkcXuxWMYjNwaI01ZXWrelPdryrWX4FFUVCsL5tuszWtnAk81LRfw==,iv:ozXB2CIQUE+5MqdpH5eDHDbo/u80xm2SSEb0qkfSaAg=,tag:R2izoMRZwsi5Q/XwUoLWaQ==,type:str]
+    key: ""
+  discovery:
+    enabled: true
+    registries:
+      kubernetes:
+        disabled: true
+      service: {}
+sops:
+  kms: []
+  gcp_kms: []
+  azure_kv: []
+  hc_vault: []
+  age:
+    - recipient: age157d58w2rqqcpfrmr6wnff8kztndmkpg3440l42aqwv6nt2x3xanq7a5ulv
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBtVXE0U3BYSEVzKzNjV3ZK
+        SHF3UUR4aUM2a0ZCVkE4M0tTVFRKZ0JrcmpNCldEY05tREsvRzdvdS9mSi9YcHpC
+        bjZJdnR5eHdwWFZoMk1TclN3cUgwSlkKLS0tIEphdmNIcmdjWUNxWkJXMERPMEZl
+        Q2hZTnJ4cHBjYW9Wd0MwbUFTdUZjclUK5HtlRqRU6iakB7rSJPD8C8Jjvbx4hN6/
+        8B6lIW5Yz+TeZQvDJIwy+oS/EgSUfWRC/fqW7ZZipOGQvcfNdVA5Rg==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2024-12-20T19:29:58Z"
+  mac: ENC[AES256_GCM,data:oWI6X5FMKU7nKC2kH9lwz3a/Evg/27Vs+87pTHOYyYd22+LE41kv4Z8Ynx3ljyFnr+zJJ12TWYd43RdSxxM9b0nwfLxWbtXXzjNsIweBLLjRHnl3HI5Qgjolpvuhf1otWGVaqyB/0nD4jOg1wA9XWNdeaMwFj6lEuUZhg86bDlg=,iv:dn1ebKunHIsIGLFJrq2+LXiKXqIrUKQv2xbybP3lEGs=,tag:vJDgRuMPYjVmjwVaKYgtdw==,type:str]
+  pgp: []
+  encrypted_regex: ^(token|crt|key|id|secret|secretboxEncryptionSecret|ca)$
+  mac_only_encrypted: true
+  version: 3.9.2

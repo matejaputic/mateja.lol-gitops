@@ -1,0 +1,106 @@
+version: v1alpha1
+debug: false
+persist: true
+machine:
+  type: worker
+  token: ENC[AES256_GCM,data:tqxBglWmDMryycnB/uIyXOq+2+Nh8xA=,iv:4+tmoZZzoZPPiWLmrGPBtaxpMgtjgt11GquF8K7pnRU=,tag:rXgA10gwcQnlzrjEpjIQzg==,type:str]
+  ca:
+    crt: ENC[AES256_GCM,data:edFgdyeIk0hEMS0h/201VrAvdbGEssifJ9KUssrGM/fUc1BM1JU+gNlxtgs3dxoQI1f505YX8YARxXJwNvJyvcpCxy6ioXwEc5O+EC+RuXQ3fXKG4bCEhnssV6xIiGHKTFbhzd8ri3yJ+6bKInQj/4/8MlTHtHDJkNx2ucooeKHM+xFsJqcPbCxeXaQJXCeVDmN+KfXWVbt6rIdl5Hveidf4KMY2QQFQ6Vyx9mwpTR7gdpFt2PTFDLJQaRuRrKgnW61uOh4OBRY09EFLTovs7J17laSCiQgH0xiYINsXe//9SVU+bNL/krpLPokdr2vPPOcNkO+vuev1KSc34SD+UrPHWMf7jKAvtDshuytr/AQjg4+83XpLHk0NBIsl6NN5U6ionngJbIxZlyMGzITeMhHrks1pBa7PnU4m8DbBg9ibirTceCBYW2oLieY438Ico8yqiAgfS3m9UueU9EPwVCqM5Mq2eJvW8IINOanFsczLffz3wt6EEE7LSS37jWODoR/cnn3pomqyRKLfOJzejzZzkYNuXNK02JzeyuxBXPirhDivu0yRDwywpgoS3S0ndSqxdDCWzZ/KD0QQxKQh/kt16ucw/adifjh01F3uxYh/O8UHSXbtTP5Sm6m3XY3UPSeW3rYvcKGfYaRozhzyRgPcd0ZsPrnUKWwBIX6ZzheI1wmVcIcW2siX/9p9YfderSe1LZ8UkdfeJpRuPXczUab3TT2VXIxtTo2Nhn+2EBN+vcQvZVBfMLUbBdai0jnG+sm1ViuZcrBU2ndi4VvLn1Zcq1XkfusNqclhJVuI/fz7y7CfU0uw2kvX1KK2Z2yRvarTzI6TaSBYVXGTy55amu0tHzvl04IhcgKKK9KsU+GQ+mY5,iv:G8FGMt1dozpTmpDjo464yHPXpywoH51eYykMPEmTDL0=,tag:MPSb7LRCYS6qvpxN5fYu3Q==,type:str]
+    key: ""
+  certSANs: []
+  kubelet:
+    image: ghcr.io/siderolabs/kubelet:v1.31.2
+    extraArgs:
+      rotate-server-certificates: "true"
+    extraMounts:
+      - destination: /var/openebs/local
+        type: bind
+        source: /var/openebs/local
+        options:
+          - rbind
+          - rshared
+          - rw
+    defaultRuntimeSeccompProfileEnabled: true
+    disableManifestsDirectory: true
+  network:
+    hostname: rondo
+  install:
+    disk: /dev/nvme0n1
+    image: factory.talos.dev/installer-secureboot/fb2f774a442c29d59c065283f8fb62485b5ef789a2224f96de66f294e9f7b660:v1.9.0
+    wipe: false
+  sysctls:
+    vm.nr_hugepages: "1024"
+  registries: {}
+  systemDiskEncryption:
+    state:
+      provider: luks2
+      keys:
+        - slot: 0
+          tpm: {}
+      options:
+        - no_read_workqueue
+        - no_write_workqueue
+    ephemeral:
+      provider: luks2
+      keys:
+        - slot: 0
+          tpm: {}
+      options:
+        - no_read_workqueue
+        - no_write_workqueue
+  features:
+    rbac: true
+    stableHostname: false
+    apidCheckExtKeyUsage: true
+    diskQuotaSupport: true
+    kubePrism:
+      enabled: true
+      port: 7445
+    hostDNS:
+      enabled: true
+      forwardKubeDNSToHost: true
+  nodeLabels:
+    openebs.io/engine: mayastor
+cluster:
+  id: ENC[AES256_GCM,data:bdoZ/DRMilaPgs5Y7awXmHM2gCup8ZNRzjFAqIeueSpO1et5h3nliMgk+FI=,iv:ZqJeFtlqH1fnOfcCh5WpQUK8QhhDeMl3MQJvIWgOCiQ=,tag:xbHC1lQyKKjoZDzZ/nLUXQ==,type:str]
+  secret: ENC[AES256_GCM,data:Kpa0xzE1E58j7miqeSvZtifetbI7gBREBGJt4laFGkGbuGLjpM1giJ27XjM=,iv:X/MWE+q07KbFYrGZeFKQR7u2hj5qZUNGT16oVoscRT8=,tag:xhqPeBTfXxeuOMqj14wnXA==,type:str]
+  controlPlane:
+    endpoint: https://192.168.88.100:6443
+  clusterName: mateja.lol
+  network:
+    dnsDomain: cluster.internal
+    podSubnets:
+      - 10.244.0.0/16
+    serviceSubnets:
+      - 10.96.0.0/12
+  token: ENC[AES256_GCM,data:jXNKmBwZ9dW+M7kAObPjAEBZWG0uz50=,iv:r18Q7gkjuPDywqmWJtTp5LXadYgLOE7+97bABBxGW/M=,tag:Wvr9lpfhxNvIniTjSXFmxw==,type:str]
+  ca:
+    crt: ENC[AES256_GCM,data:F7QksuMPumw0O2Twt0ZuHUOyDANuPg71tazcRxRSf24kmaFBwZTVA1fAp5ULP2Bfkl7hVgjuN2JORIU8e+wH9LuXi2Ah/aL7uM1owcumpKQbs/cKoRVLUoTQJSp8olg8oR/l0ltZBaK7VFcRGEGMtiV7NIkS4SLBH7WtD+UmB6wppLosdpWQ+tlg+laKx/nFyjel3rV0zwGiYwstWcXE4nuBKta3sS7aA3/UZSzGcE4c+EJc+BQ2fy3OY/QLoXCH0AjS7mn3i3Bo6hzzg6QZAMXQiYGsLEY+hSw4oqR8TswGbqBUdDr8m7GmupQxNi/sf5WuutiQqwRHLmeSSla6S76tiEiq7tGReBCsdD5IQI3g9S1gagiwK1dw8TwxdsA5Zu332tLplIwX1e/V5QLkQNULeT4RWmpTI0j5wN7KmC7tCwTK0qZ9cYEiJhfyRDj9GccdhLa74nizH0BiBzn6OhV8j6CNczJW9Ye74sJk25SNPPETFl24IYyRWN/Jh2vV8F0L1z4y7JzEzR5X/RSBe4FDSXZvbOI1Cf+kti6xzDItENc4CG25xU/npq83noe3MOszgxbe2Xd+E7edAKyqvf3wwBvYuY9WwJPHauEOcnRvQzFAp9yNAC5LX4NgAVZUHmlINSklJTmMgnV5lV5WENrZMGocDYNt8u9PjiFK+XxgXXgRKHPAs2pR4kGi4PxSALqvQg+K8sVY47TDr/XfIo7EZKnLpleaT21Bo4Z/y6DPn00EgoUxUzy81PosRMEihB46UcVxvIbCFfOjZTQhxbyJx5WaK/NSdyY99Y7HUKRJYfZc1vsNAN/Wxo5a/WtZob3uPBuN42qAqey/AO1t9Y3ZxsjIsrzu2T8Y+rkvExLqu9AxSwD29KYb7N6Lmd6XEmt2pznCjzIDtz4Uuz54ZbUDpS8hfRGCz8x+LTvek6sv+rvMFbR62Df3WL6VJt49ESw8u93IH0IB4OQCvs4jZ0psm7S4gEsuJ4J4y3tFeCzhNPr5ZvH2OzjygTakyRmIcBHagLrKhKVwcHfqleyKJNm8y+sNu4RZLnKoDg==,iv:eBTxb2tsbG5LolJYkhiRFYw3Kx3/IQfeMQekThzzGuw=,tag:1mfOWaKvVH6qRbWjIg/SJg==,type:str]
+    key: ""
+  discovery:
+    enabled: true
+    registries:
+      kubernetes:
+        disabled: true
+      service: {}
+sops:
+  kms: []
+  gcp_kms: []
+  azure_kv: []
+  hc_vault: []
+  age:
+    - recipient: age157d58w2rqqcpfrmr6wnff8kztndmkpg3440l42aqwv6nt2x3xanq7a5ulv
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBXZTNDTFRJd3pTblBrWUp4
+        SjV6SWRiZjdFRU90ODJiWGFVeGtrd3ZLS25BCnFJWEdQQ0NYMU9ncEdhZXlSUjNr
+        K0RKYUU0YWsvTTBXVHEyR1JFQ2pONzAKLS0tIHkrV0I4ZEZxV1liUVJtM3RrL0dY
+        K1hJUnRZSGh5VnkzUjhXd2lkSUxsaUEKqFIvXylfsWHYJl6DX+6r8XptDgAYnOv9
+        rM49t4bGWSiTcDmHuorNIp8a2Nmv5wus+F4ibHTwBuqivXh2WmIyFA==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2024-12-20T19:30:31Z"
+  mac: ENC[AES256_GCM,data:r3HEEEajc/GeJLY5gOmx3rlNkJsj6ooU+5mmb1pFCzCQUQK9k1mSA181SwKxEZYA00eYpeZarYgj5pmRIK+BCdHcG4UMMFKQvdSaXgsK9HP5EQdYubDZz7AB7aj+FVXK2CSjDr2IsLBFRA7rjwtrSt6hT8DbhQd3n9MRZH2Uma4=,iv:jZXyo8ugX8XSmWUOhMBZ2xhQNuUxhfo6TXfFfCO3igs=,tag:L/gmWi/ti0LTNYuQfdEIvw==,type:str]
+  pgp: []
+  encrypted_regex: ^(token|crt|key|id|secret|secretboxEncryptionSecret|ca)$
+  mac_only_encrypted: true
+  version: 3.9.2
