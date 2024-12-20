@@ -3,5 +3,3 @@
 
 # Include manifest directories
 !/kubernetes/
-!/apps/
-!/infra/
