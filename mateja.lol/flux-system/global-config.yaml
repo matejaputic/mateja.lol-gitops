@@ -1,9 +1,0 @@
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: global-config
-  namespace: flux-system
-data:
-  STORAGE_READWRITEONCE: "openebs-hostpath"
-  STORAGE_READWRITEMANY: ""
