@@ -26,5 +26,5 @@ spec:
   values:
     controller:
       replicaCount: 2
-      serviceMonitor:
-        create: true
+      # serviceMonitor: # TODO: Put back when prometheus is installed
+      #   create: true
